@@ -2314,3 +2314,2478 @@ p_body2.font.color.rgb = TEXT_MUTED
 p_body2.space_before = Pt(4)
 prs.save("National_Digital_Risk_Audit_Presentation.pptx")
 print("PowerPoint presentation National_Digital_Risk_Audit_Presentation.pptx generated successfully!")
+
+# ----------------- HTML GENERATION -----------------
+import json
+html_template = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pan-India Digital Security Audit - Interactive Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #120f1d;
+            --bg-card: #1b1829;
+            --bg-card-hover: #231f33;
+            --border-muted: #312c45;
+            --text-primary: #faf6f0;
+            --text-secondary: #d5c3c6;
+            --text-muted: #8b7d8b;
+            --accent-cyan: #e5a88b;
+            --accent-cyan-glow: rgba(229, 168, 139, 0.25);
+            --color-secure: #88d49e;
+            --color-secure-glow: rgba(136, 212, 158, 0.15);
+            --color-warning: #f1c40f;
+            --color-danger: #f07167;
+            --color-danger-glow: rgba(240, 113, 103, 0.15);
+            
+            /* Risk tier specific colors */
+            --c-very-secure: #88d49e;
+            --c-secure: #2e8b57;
+            --c-moderate: #f1c40f;
+            --c-high: #e67e22;
+            --c-very-high: #f07167;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(229, 168, 139, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(213, 195, 198, 0.02) 0%, transparent 40%);
+        }
+
+        h1, h2, h3, .font-display {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-muted);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-cyan);
+        }
+
+        /* Container Layout */
+        .wrapper {
+            max-width: 1560px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Header section */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-muted);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header-title h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #ffffff 0%, var(--accent-cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .header-badge {
+            background: rgba(229, 168, 139, 0.08);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(229, 168, 139, 0.15);
+        }
+
+        /* Main Workspace Grid */
+        .top-row-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .top-row-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            height: 100%;
+        }
+
+        @media (max-width: 480px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-muted);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--accent-cyan);
+        }
+
+        .kpi-card.secure::before { background: var(--color-secure); }
+        .kpi-card.critical::before { background: var(--color-danger); }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            border-color: rgba(229, 168, 139, 0.2);
+        }
+
+        .kpi-value {
+            font-size: 40px;
+            font-weight: 800;
+            margin-top: 8px;
+            font-family: 'Outfit', sans-serif;
+            line-height: 1;
+        }
+
+        .kpi-label {
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        /* Chart Panel Card */
+        .chart-panel-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-muted);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 280px;
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--accent-cyan);
+            margin-bottom: 16px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* SVG Donut Chart styling */
+        .donut-container {
+            position: relative;
+            width: 160px;
+            height: 160px;
+        }
+
+        .donut-svg {
+            transform: rotate(-90deg);
+        }
+
+        .donut-ring {
+            fill: none;
+            stroke: var(--border-muted);
+            stroke-width: 10;
+        }
+
+        .donut-segment {
+            fill: none;
+            stroke-width: 12;
+            transition: stroke-dasharray 0.4s ease, stroke-dashoffset 0.4s ease;
+        }
+
+        .donut-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .donut-center-num {
+            font-family: 'Outfit', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            line-height: 1;
+        }
+
+        .donut-center-lbl {
+            font-size: 9px;
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* Chart Legends */
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 16px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* Controls Section (Filters & Search) */
+        .controls-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-muted);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 280px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            background: var(--bg-main);
+            border: 1px solid var(--border-muted);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(229, 168, 139, 0.15);
+        }
+
+        .filter-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .btn {
+            background: var(--bg-main);
+            border: 1px solid var(--border-muted);
+            border-radius: 6px;
+            padding: 8px 14px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .btn.active {
+            background: rgba(229, 168, 139, 0.08);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        /* View Toggle Mode switcher */
+        .view-switcher {
+            display: flex;
+            background: var(--bg-main);
+            border: 1px solid var(--border-muted);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .view-btn {
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-btn.active {
+            background: var(--border-muted);
+            color: var(--text-primary);
+        }
+
+        /* Lead Cards View */
+        .leads-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 20px;
+        }
+
+        .lead-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-muted);
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .lead-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            border: 1px solid var(--accent-cyan);
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .lead-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(229, 168, 139, 0.06);
+            border-color: transparent;
+        }
+
+        .lead-card:hover::after {
+            opacity: 0.35;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .card-title h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .card-title p {
+            color: var(--text-secondary);
+            font-size: 11px;
+            margin-top: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .score-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-muted);
+            border-radius: 8px;
+            padding: 6px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .score-val {
+            font-size: 18px;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .score-val.secure { color: var(--color-secure); }
+        .score-val.warning { color: var(--color-warning); }
+        .score-val.danger { color: var(--color-danger); }
+
+        .score-label {
+            font-size: 9px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            margin-bottom: 16px;
+        }
+
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .meta-label {
+            color: var(--text-secondary);
+        }
+
+        .meta-val {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .priority-indicator {
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .priority-indicator.critical {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--color-danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .priority-indicator.medium {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--color-warning);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        .priority-indicator.low {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--color-secure);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .card-footer {
+            border-top: 1px solid var(--border-muted);
+            padding-top: 12px;
+            font-size: 12px;
+            color: var(--accent-cyan);
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Database Table View */
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-muted);
+            border-radius: 12px;
+            overflow-x: auto;
+            display: none; /* Switched by Javascript */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th {
+            background: #111524;
+            color: var(--accent-cyan);
+            font-weight: 700;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-muted);
+            font-size: 11px;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-muted);
+            vertical-align: middle;
+            color: var(--text-primary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+        }
+
+        tr.zebra td {
+            background: rgba(255, 255, 255, 0.008);
+        }
+
+        /* Detail Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(18, 15, 29, 0.85);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 820px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 32px;
+            transform: scale(0.95);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 50px rgba(229, 168, 139, 0.15);
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--accent-cyan);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border-muted);
+            padding-bottom: 18px;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h2 {
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .modal-category {
+            color: var(--accent-cyan);
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .modal-section {
+            margin-bottom: 24px;
+        }
+
+        .modal-section-title {
+            color: var(--accent-cyan);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .vulnerability-badge-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .vulnerability-tag {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: var(--color-danger);
+            font-weight: 500;
+        }
+
+        .vulnerability-tag.secure {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--color-secure);
+        }
+
+        .recs-box {
+            background: var(--bg-main);
+            border: 1px solid var(--border-muted);
+            border-radius: 8px;
+            padding: 16px 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .pitch-box {
+            background: rgba(229, 168, 139, 0.05);
+            border: 1px solid rgba(229, 168, 139, 0.2);
+            border-radius: 8px;
+            padding: 16px 20px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--accent-cyan);
+            font-weight: 500;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .detail-item {
+            background: var(--bg-main);
+            border: 1px solid var(--border-muted);
+            border-radius: 8px;
+            padding: 12px 16px;
+        }
+
+        .detail-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-top: 4px;
+        }
+
+        .detail-value.red { color: var(--color-danger); }
+        .detail-value.green { color: var(--color-secure); }
+        .detail-value.yellow { color: var(--color-warning); }
+
+        /* Empty search state */
+        .empty-state {
+            background: var(--bg-card);
+            border: 1px solid var(--border-muted);
+            border-radius: 12px;
+            padding: 50px 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 16px;
+            display: none;
+        }
+
+        /* Clickable website links */
+        a {
+            transition: opacity 0.2s ease;
+        }
+        a:hover {
+            opacity: 0.85;
+            text-decoration: underline !important;
+        }
+
+        /* Premium layout updates for 3-column top row grid */
+        .top-row-grid {
+            grid-template-columns: 1.2fr 1fr 1fr !important;
+        }
+
+        @media (max-width: 1200px) {
+            .top-row-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* SVG Bar Chart styling */
+        .bar-chart-container {
+            width: 100%;
+            height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            gap: 8px;
+        }
+
+        .bar-label {
+            width: 110px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 12px;
+            background: var(--border-muted);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.4s ease;
+            background: linear-gradient(90deg, var(--accent-cyan) 0%, var(--c-very-secure) 100%);
+        }
+
+        .bar-val {
+            width: 32px;
+            text-align: right;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        /* Executive Briefing Report Section Styles */
+        .report-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            padding: 20px 0;
+        }
+
+        .report-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-muted);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .report-section:hover {
+            border-color: rgba(229, 168, 139, 0.15);
+        }
+
+        .report-title-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-muted);
+            padding-bottom: 12px;
+        }
+
+        .report-icon {
+            font-size: 24px;
+            color: var(--accent-cyan);
+        }
+
+        .report-h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+
+        .report-text {
+            color: var(--text-secondary);
+            font-size: 14.5px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .report-bullet {
+            margin-left: 20px;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Alert block in report */
+        .report-alert {
+            background: rgba(240, 113, 103, 0.05);
+            border-left: 4px solid var(--color-danger);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 20px 0;
+            color: var(--text-primary);
+        }
+
+        .report-alert strong {
+            color: var(--color-danger);
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        /* Dynamic stat grid inside report */
+        .report-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .report-stat-card {
+            background: var(--bg-main);
+            border: 1px solid var(--border-muted);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .report-stat-val {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .report-stat-lbl {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+
+        /* City pills styling */
+        .city-pills-row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 0 12px 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-muted);
+            scrollbar-width: thin;
+        }
+        
+        .city-pill {
+            background: var(--bg-card);
+            border: 1px solid var(--border-muted);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        
+        .city-pill:hover {
+            border-color: var(--accent-cyan);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+        
+        .city-pill.active {
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--c-high) 100%);
+            border-color: transparent;
+            color: #120f1d;
+            box-shadow: 0 4px 12px rgba(229, 168, 139, 0.2);
+        }
+
+        /* Floating drawer styling */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .calc-drawer {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 400px;
+            height: 100%;
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-muted);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .calc-drawer.open {
+            right: 0;
+        }
+
+        .calc-drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-muted);
+            padding-bottom: 16px;
+        }
+
+        .calc-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .calc-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .calc-close-btn:hover {
+            color: #ffffff;
+        }
+
+        .calc-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .calc-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .calc-input {
+            background: var(--bg-main);
+            border: 1px solid var(--border-muted);
+            color: #ffffff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .calc-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+
+        .checkbox-label-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-main);
+            border: 1px solid var(--border-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .checkbox-label-row:hover {
+            border-color: rgba(229, 168, 139, 0.15);
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .checkbox-label-row input[type="checkbox"] {
+            margin-top: 3px;
+            accent-color: var(--accent-cyan);
+        }
+
+        .checkbox-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .checkbox-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .checkbox-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .calc-result-box {
+            background: rgba(229, 168, 139, 0.04);
+            border: 1px solid rgba(229, 168, 139, 0.15);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            margin-top: 10px;
+        }
+
+        .calc-meter-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .calc-score-display {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--accent-cyan);
+        }
+
+        .calc-result-metrics {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 12px;
+            border-top: 1px solid var(--border-muted);
+            padding-top: 10px;
+        }
+
+        .calc-metric-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .calc-metric-lbl {
+            color: var(--text-muted);
+        }
+
+        .calc-metric-val {
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+    
+        @media print {
+            body { background: #ffffff !important; color: #000000 !important; }
+            .header-title h1, .report-h2, .report-stat-val { color: #000000 !important; }
+            header { background: #ffffff !important; border-bottom: 2px solid #000; padding: 10px; }
+            .controls-panel, .view-switcher, #leads-section-container, #dashboard-top-grid, .btn { display: none !important; }
+            #report-section-container { display: block !important; }
+            .report-section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; margin-bottom: 20px; page-break-inside: avoid; }
+        }
+
+        body.light-mode {
+            --bg-dark: #f0f2f5;
+            --bg-card: #ffffff;
+            --text-light: #1e293b;
+            --text-muted: #64748b;
+            --border-muted: #cbd5e1;
+            --header-bg: #ffffff;
+        }
+        body.light-mode header {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-bottom: none;
+        }
+        body.light-mode .lead-card, body.light-mode .report-section {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-muted);
+        }
+        body.light-mode .stat-card {
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-muted);
+        }
+        body.light-mode th {
+            background-color: #f8fafc;
+            color: #475569;
+            border-bottom-color: #cbd5e1;
+        }
+        body.light-mode td {
+            border-bottom-color: #e2e8f0;
+        }
+        body.light-mode tr:hover {
+            background-color: #f1f5f9;
+        }
+        body.light-mode .calc-drawer {
+            background: #ffffff;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.1);
+        }
+        body.light-mode .calc-drawer-header {
+            border-bottom-color: #e2e8f0;
+        }
+        body.light-mode .donut-text-val {
+            fill: #1e293b;
+        }
+        body.light-mode .donut-text-label {
+            fill: #64748b;
+        }
+        body.light-mode .modal-content {
+            background: #ffffff;
+            color: #1e293b;
+        }
+        body.light-mode .modal-header {
+            border-bottom-color: #e2e8f0;
+        }
+        body.light-mode .email-pitch-box {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <header>
+            <div class="header-title">
+                <h1>National SMB Digital Risk Auditor</h1>
+                <p>Digital security posture & vulnerability assessment of 50 Indian commercial leads</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div class="view-switcher" style="padding: 2px;">
+                    <button class="view-btn active" id="tab-leads-btn">Audit Database</button>
+                    <button class="view-btn" id="tab-report-btn">Executive Briefing</button>
+                </div>
+                <button class="btn" id="theme-toggle-btn" style="background: rgba(229, 168, 139, 0.1); border-color: var(--color-warning); color: var(--color-warning);">☀️ Light Mode</button>
+                <button class="btn" id="open-calc-btn" style="background: rgba(136, 212, 158, 0.08); border-color: var(--color-secure); color: var(--color-secure); display: flex; align-items: center; gap: 6px;">
+                    🧮 Posture Calculator
+                </button>
+                <div class="header-badge">PAN-INDIA AUDIT • 2026</div>
+            </div>
+        </header>
+
+        <div class="top-row-grid" id="dashboard-top-grid">
+            <!-- KPI Summary Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Businesses Checked</div>
+                    <div class="kpi-value" id="kpi-total">50</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Average Security Score</div>
+                    <div class="kpi-value" id="kpi-score" style="color: var(--accent-cyan);">3.44</div>
+                </div>
+                <div class="kpi-card secure">
+                    <div class="kpi-label">Secure Rate (Score 4-5)</div>
+                    <div class="kpi-value" id="kpi-secure" style="color: var(--color-secure);">64.0%</div>
+                </div>
+                <div class="kpi-card critical">
+                    <div class="kpi-label">Critical At-Risk Leads</div>
+                    <div class="kpi-value" id="kpi-risky" style="color: var(--color-danger);">18</div>
+                </div>
+            </div>
+            
+            <!-- Live Donut Chart Panel -->
+            <div class="chart-panel-card">
+                <div class="chart-title">Risk Level Breakdown (Live)</div>
+                <div class="donut-container">
+                    <svg class="donut-svg" width="160" height="160" viewBox="0 0 160 160">
+                        <circle class="donut-ring" cx="80" cy="80" r="60"></circle>
+                        <!-- Donut slices generated dynamically -->
+                        <g id="donut-segments-group"></g>
+                    </svg>
+                    <div class="donut-center-text">
+                        <span class="donut-center-num" id="donut-center-count">50</span>
+                        <span class="donut-center-lbl">Leads</span>
+                    </div>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--c-very-secure);"></span> Very Secure</div>
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--c-secure);"></span> Secure</div>
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--c-high);"></span> High Risk</div>
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--c-very-high);"></span> Very High</div>
+                </div>
+            </div>
+
+            <!-- Live Category Scores Bar Chart Panel -->
+            <div class="chart-panel-card">
+                <div class="chart-title">Score by Category (Live)</div>
+                <div class="bar-chart-container" id="bar-chart-container">
+                    <!-- Populated dynamically via Javascript -->
+                </div>
+            </div>
+        </div>
+
+        <div id="leads-section-container">
+        <!-- City Filter Pills -->
+        <div class="city-pills-row" id="city-pills-row">
+            <!-- Populated dynamically via Javascript -->
+        </div>
+        <!-- Filters Section -->
+        <div class="controls-panel">
+            <div class="search-row">
+                <div class="search-box">
+                    
+            <select class="filter-select" id="sort-filter">
+                <option value="score-asc">Sort: Risk (High to Low)</option>
+                <option value="score-desc">Sort: Score (High to Low)</option>
+                <option value="name-asc">Sort: Name (A-Z)</option>
+                <option value="reviews-desc">Sort: Popularity (Reviews)</option>
+            </select>
+
+            <input type="text" id="search-input" placeholder="Search business name, location, or vulnerability...">
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-group" id="filter-category">
+                    <span class="filter-label">Category:</span>
+                    <button class="btn active" data-cat="all">All</button>
+                    <button class="btn" data-cat="Restaurants & Cafes">Restaurants</button>
+                    <button class="btn" data-cat="Healthcare & Clinics">Healthcare</button>
+                    <button class="btn" data-cat="Retail & Shops">Retail</button>
+                    <button class="btn" data-cat="Professional Services">Professional Services</button>
+                    <button class="btn" data-cat="Hospitality & Hotels">Hospitality</button>
+                </div>
+                <div class="filter-group" id="filter-priority">
+                    <span class="filter-label">Priority:</span>
+                    <button class="btn active" data-priority="all">All</button>
+                    <button class="btn" data-priority="CRITICAL">Critical</button>
+                    <button class="btn" data-priority="MEDIUM">Medium</button>
+                    <button class="btn" data-priority="LOW">Low</button>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button class="btn" id="export-csv-btn" style="background: rgba(229, 168, 139, 0.08); border-color: var(--accent-cyan); color: var(--accent-cyan); display: flex; align-items: center; gap: 6px;">
+                        📥 Export Leads CSV
+                    </button>
+                    <div class="view-switcher">
+                        <button class="view-btn active" id="view-cards-btn">Cards</button>
+                        <button class="view-btn" id="view-table-btn">Database Table</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty Search State -->
+        <div class="empty-state" id="empty-state">
+            No businesses matches the selected filter criteria. Try expanding your search.
+        </div>
+
+        <!-- Cards View -->
+        <div class="leads-grid" id="leads-grid">
+            <!-- Populated by JavaScript -->
+        </div>
+
+        <!-- Table View -->
+        <div class="table-container" id="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Business Name</th>
+                        <th>Website Link</th>
+                        <th>Category</th>
+                        <th>Location</th>
+                        <th>Score</th>
+                        <th>Risk Level</th>
+                        <th>Priority</th>
+                        <th>HTTPS</th>
+                        <th>SSL Status</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+        </div> <!-- End of leads-section-container -->
+
+        <!-- Executive Briefing Report Section -->
+        <div id="report-section-container" style="display: none;">
+            <div class="report-container">
+                <!-- Section 1: Executive Summary -->
+                <div class="report-section">
+                    <div class="report-title-row">
+                        <span class="report-icon">🛡</span>
+                        <h2 class="report-h2">1. Executive Summary & Assessment Overview</h2>
+<button class="btn" onclick="window.print()" style="margin-left: 15px; background: rgba(229, 168, 139, 0.1); border-color: var(--accent-cyan); color: var(--accent-cyan);">🖨 Print Report</button>
+                    </div>
+                    <p class="report-text">
+                        This auditing platform captures the digital security posture and cybersecurity exposure of <strong>50 commercial businesses</strong> distributed across primary Indian economic hubs. Sourced dynamically via Google Maps profiles, target leads span 5 main categories: <em>Restaurants & Cafes</em>, <em>Healthcare & Clinics</em>, <em>Retail & Shops</em>, <em>Professional Services</em>, and <em>Hospitality & Hotels</em>.
+                    </p>
+                    <div class="report-alert">
+                        <strong>⚠ DIGITAL POSTURE ANALYSIS THREAT WARNING</strong>
+                        A significant portion of the Indian small-to-medium business segment (36.0% of assessed leads) operates under vulnerable or unencrypted configurations (Security Score 0-3). Omission of primary transport layers and administrative protections invites risk of competitor profile takeover, brand disruption, and customer booking data hijacking.
+                    </div>
+                    <div class="report-stat-grid">
+                        <div class="report-stat-card">
+                            <div class="report-stat-val">3.44 / 5.0</div>
+                            <div class="report-stat-lbl">Average security score</div>
+                        </div>
+                        <div class="report-stat-card">
+                            <div class="report-stat-val">64.0%</div>
+                            <div class="report-stat-lbl">Secure rate (score 4-5)</div>
+                        </div>
+                        <div class="report-stat-card">
+                            <div class="report-stat-val">18 Leads</div>
+                            <div class="report-stat-lbl">Critical At-Risk Leads</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Key Findings -->
+                <div class="report-section">
+                    <div class="report-title-row">
+                        <span class="report-icon">📊</span>
+                        <h2 class="report-h2">2. Key Findings & Digital Risk Indicators</h2>
+                    </div>
+                    <p class="report-text">
+                        Cross-sector testing across target domains revealed 56 distinct system-level security gaps:
+                    </p>
+                    <div class="report-bullet"><strong>• Digital Absence (16.0%):</strong> 8 businesses operate without active landing pages or domains, cutting off digital customer acquisition channels.</div>
+                    <div class="report-bullet"><strong>• Unencrypted Protocols (20.0%):</strong> 10 businesses fail to force HTTPS redirects or use expired SSL configurations, transmitting booking inputs in cleartext.</div>
+                    <div class="report-bullet"><strong>• Public Admin Endpoints (12.0%):</strong> 6 active websites expose administrative URL interfaces (such as <code>/wp-admin</code>), enabling brute-force automated login scans.</div>
+                    <div class="report-bullet"><strong>• Unclaimed Listings (18.0%):</strong> 9 businesses leave Google Business Profiles unclaimed, allowing malicious public phone or name adjustments.</div>
+                </div>
+
+                <!-- Section 3: Industry Postures -->
+                <div class="report-section">
+                    <div class="report-title-row">
+                        <span class="report-icon">🏢</span>
+                        <h2 class="report-h2">3. Sector & Regional Performance Scores</h2>
+                    </div>
+                    <p class="report-text">
+                        Auditing reveals wide disparity in cybersecurity implementation:
+                    </p>
+                    <div class="report-bullet"><strong>• Hospitality & Hotels (Avg: 4.20/5):</strong> Enterprise compliance protocols ensure HTTPS and SSL standardization.</div>
+                    <div class="report-bullet"><strong>• Healthcare & Clinics (Avg: 3.70/5):</strong> Moderate score, though small dental clinics exhibit missing header vulnerabilities.</div>
+                    <div class="report-bullet"><strong>• Professional Services (Avg: 3.50/5):</strong> Higher base score but minor CA offices lack form protections.</div>
+                    <div class="report-bullet"><strong>• Retail & Shops (Avg: 3.30/5):</strong> Exposed local boutique sites suffer from missing encryption redirects.</div>
+                    <div class="report-bullet"><strong>• Restaurants & Cafes (Avg: 2.50/5):</strong> Lowest scoring industry due to legacy local web configurations.</div>
+                </div>
+
+                <!-- Section 4: Action Roadmap -->
+                <div class="report-section">
+                    <div class="report-title-row">
+                        <span class="report-icon">🚀</span>
+                        <h2 class="report-h2">4. Actionable Remediation Roadmap</h2>
+                    </div>
+                    <p class="report-text">
+                        Remediation should proceed in three tactical phases to secure brand presence:
+                    </p>
+                    <div class="report-bullet"><strong>1. Immediate:</strong> Enforce 301 HTTPS redirects, install valid SSL certificates, and verify maps ownership tags.</div>
+                    <div class="report-bullet"><strong>2. Medium-Term:</strong> Restrict admin directory access by IP range or rename login endpoints; deploy anti-CSRF protection on input forms.</div>
+                    <div class="report-bullet"><strong>3. Long-Term:</strong> Add HTTP Strict Transport Security (HSTS) headers, restrict directory folder listings, and schedule monthly malware scans.</div>
+                </div>
+            </div>
+        </div>
+
+    <!-- Score Calculator Drawer overlay & card -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+    <div class="calc-drawer" id="calc-drawer">
+        <div class="calc-drawer-header">
+            <h3 class="calc-title">🛡 Posture Score Calculator</h3>
+            <button class="calc-close-btn" id="close-calc-btn">×</button>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 12.5px; line-height: 1.5;">
+            Simulate a security assessment audit in real-time to calculate potential scores and pitches for new prospects.
+        </p>
+
+        <div class="calc-input-group">
+            <label class="calc-label">Business Name</label>
+            <input type="text" class="calc-input" id="calc-biz-name" placeholder="e.g. Apollo Pharmacy">
+        </div>
+
+        <div class="calc-input-group">
+            <label class="calc-label">Vulnerabilities Identified</label>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+                <label class="checkbox-label-row">
+                    <input type="checkbox" id="calc-v-http" checked>
+                    <div class="checkbox-text">
+                        <span class="checkbox-title">No HTTPS Redirect</span>
+                        <span class="checkbox-desc">Deducts 1.0 point. Browser shows unencrypted warning.</span>
+                    </div>
+                </label>
+                <label class="checkbox-label-row">
+                    <input type="checkbox" id="calc-v-ssl" checked>
+                    <div class="checkbox-text">
+                        <span class="checkbox-title">Missing/Expired SSL Certificate</span>
+                        <span class="checkbox-desc">Deducts 1.0 point. Connection is flagged private.</span>
+                    </div>
+                </label>
+                <label class="checkbox-label-row">
+                    <input type="checkbox" id="calc-v-admin">
+                    <div class="checkbox-text">
+                        <span class="checkbox-title">Exposed Admin Panel (/wp-admin)</span>
+                        <span class="checkbox-desc">Deducts 1.0 point. Susceptible to brute-force scans.</span>
+                    </div>
+                </label>
+                <label class="checkbox-label-row">
+                    <input type="checkbox" id="calc-v-forms">
+                    <div class="checkbox-text">
+                        <span class="checkbox-title">Directory Indexing / Unprotected Forms</span>
+                        <span class="checkbox-desc">Deducts 1.0 point. Exposed files or contact form spam.</span>
+                    </div>
+                </label>
+                <label class="checkbox-label-row">
+                    <input type="checkbox" id="calc-v-safe">
+                    <div class="checkbox-text">
+                        <span class="checkbox-title">Safe Browsing Suspicious Warning</span>
+                        <span class="checkbox-desc">Deducts 1.0 point. Flagged by Google security filters.</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="calc-result-box">
+            <div class="calc-label">Simulated Posture Score</div>
+            <div class="calc-meter-container">
+                <span class="calc-score-display" id="calc-score-val">3.0</span>
+            </div>
+            
+            <div class="calc-result-metrics">
+                <div class="calc-metric-row">
+                    <span class="calc-metric-lbl">Risk Classification</span>
+                    <span class="calc-metric-val" id="calc-risk-val" style="color: var(--color-danger);">Moderate Risk</span>
+                </div>
+                <div class="calc-metric-row">
+                    <span class="calc-metric-lbl">Outreach Priority</span>
+                    <span class="calc-metric-val" id="calc-priority-val" style="color: var(--accent-cyan);">MEDIUM</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal Dialog -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <div class="modal-header">
+                <h2 id="m-name">Business Name</h2>
+                <div id="m-category" class="modal-category">RESTAURANTS & CAFES</div>
+            </div>
+
+            <div class="modal-section">
+                <div class="modal-section-title">Security Profile Details</div>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Security Audit Score</div>
+                        <div class="detail-value" id="m-score">3 / 5</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Risk Posture</div>
+                        <div class="detail-value" id="m-risk">Moderate Risk</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Outreach Urgency</div>
+                        <div class="detail-value" id="m-priority">CRITICAL</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Maps Rating & Reviews</div>
+                        <div class="detail-value" id="m-reviews">4.5 (1,850 Reviews)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <div class="modal-section-title">Web Server Protocol Checks</div>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">HTTPS Redirection</div>
+                        <div class="detail-value" id="m-https">Yes</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">SSL Certificate</div>
+                        <div class="detail-value" id="m-ssl">Valid</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Admin Exposed</div>
+                        <div class="detail-value" id="m-admin">No</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Safe Browsing Status</div>
+                        <div class="detail-value" id="m-safe">Clean</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <div class="modal-section-title">Key Security Vulnerability Flags</div>
+                <div class="vulnerability-badge-list" id="m-flags">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <div class="modal-section-title">Sales Outreach Pitch Hook</div>
+                <div class="pitch-box" id="m-pitch">
+                    Sales hook details.
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <div class="modal-section-title">Actionable Remediation Checklist</div>
+                <div class="recs-box" id="m-recs">
+                    Recommendations details.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data & Interactive Logic Scripts -->
+    <script>
+        // Embed the 30 real business database structures
+        const data = {json.dumps(processed_data)};
+
+        // Active State variables
+        let selectedCategory = 'all';
+        let selectedPriority = 'all';
+        let searchQuery = '';
+        let viewMode = 'cards'; // 'cards' or 'table'
+
+        // DOM elements
+        const leadsGrid = document.getElementById('leads-grid');
+        const tableContainer = document.getElementById('table-container');
+        const tableBody = document.getElementById('table-body');
+        const searchInput = document.getElementById('search-input');
+        const emptyState = document.getElementById('empty-state');
+        
+        // Modal DOM elements
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalClose = document.getElementById('modal-close');
+        
+        // Render Functions
+        function renderDashboard() {
+            // Apply filtering logic
+            const filtered = data.filter(item => {
+                const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+                const matchesPriority = selectedPriority === 'all' || item.outreach_priority === selectedPriority;
+                
+                const searchLower = searchQuery.toLowerCase();
+                const matchesSearch = searchQuery === '' || 
+                    item.name.toLowerCase().includes(searchLower) ||
+                    item.location.toLowerCase().includes(searchLower) ||
+                    item.key_security_gaps.toLowerCase().includes(searchLower) ||
+                    item.outreach_priority.toLowerCase().includes(searchLower) ||
+                    item.risk_level.toLowerCase().includes(searchLower);
+                
+                return matchesCategory && matchesPriority && matchesSearch;
+            });
+
+            // Update KPIs based on current filtered view
+            updateKPIs(filtered);
+            
+            // Draw interactive SVG charts
+            drawDonutChart(filtered);
+
+            // Toggle empty state warning
+            if (filtered.length === 0) {
+                emptyState.style.display = 'block';
+                leadsGrid.style.display = 'none';
+                tableContainer.style.display = 'none';
+                return;
+            } else {
+                emptyState.style.display = 'none';
+                if (viewMode === 'cards') {
+                    leadsGrid.style.display = 'grid';
+                    tableContainer.style.display = 'none';
+                } else {
+                    leadsGrid.style.display = 'none';
+                    tableContainer.style.display = 'block';
+                }
+            }
+
+            // Render Cards View
+            leadsGrid.innerHTML = '';
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'lead-card';
+                card.addEventListener('click', () => openModal(item));
+
+                let priorityClass = item.outreach_priority.toLowerCase();
+                let scoreClass = 'secure';
+                if (item.security_score <= 2) scoreClass = 'danger';
+                else if (item.security_score === 3) scoreClass = 'warning';
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h3>${item.name}</h3>
+                            <p>${item.location}</p>
+                        </div>
+                        <div class="score-badge">
+                            <span class="score-val ${scoreClass}">${item.security_score}/5</span>
+                            <span class="score-label">SCORE</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="meta-item">
+                            <span class="meta-label">Category:</span>
+                            <span class="meta-val">${item.category}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Website:</span>
+                            <span class="meta-val">${item.website_url !== 'None' ? `<a href="${item.website_url}" target="_blank" style="color: var(--accent-cyan); text-decoration: none;" onclick="event.stopPropagation()">${item.website_url.replace('https://','').replace('http://','')}</a>` : '<span style="color: var(--text-muted);">None</span>'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Google Rating:</span>
+                            <span class="meta-val">★ ${item.rating} (${item.reviews.toLocaleString()} reviews)</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Outreach Urgency:</span>
+                            <span class="priority-indicator ${priorityClass}">${item.outreach_priority}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer" title="${item.sales_pitch_hook}">
+                        Hook: ${item.sales_pitch_hook}
+                    </div>
+                `;
+                leadsGrid.appendChild(card);
+            });
+
+            // Render Table View
+            tableBody.innerHTML = '';
+            filtered.forEach((item, idx) => {
+                const row = document.createElement('tr');
+                if (idx % 2 === 1) row.className = 'zebra';
+                row.addEventListener('click', () => openModal(item));
+
+                let priorityClass = item.outreach_priority.toLowerCase();
+                let scoreClass = 'secure';
+                if (item.security_score <= 2) scoreClass = 'danger';
+                else if (item.security_score === 3) scoreClass = 'warning';
+
+                row.innerHTML = `
+                    <td><code>${item.id}</code></td>
+                    <td><strong>${item.name}</strong></td>
+                    <td>${item.website_url !== 'None' ? `<a href="${item.website_url}" target="_blank" style="color: var(--accent-cyan); text-decoration: none;" onclick="event.stopPropagation()">${item.website_url.replace('https://','').replace('http://','')}</a>` : '<span style="color: var(--text-muted);">None</span>'}</td>
+                    <td>${item.category}</td>
+                    <td>${item.location}</td>
+                    <td><strong class="${scoreClass}">${item.security_score} / 5</strong></td>
+                    <td>${item.risk_level}</td>
+                    <td><span class="priority-indicator ${priorityClass}">${item.outreach_priority}</span></td>
+                    <td>${item.https_redirect}</td>
+                    <td>${item.ssl_status}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateKPIs(filteredList) {
+            document.getElementById('kpi-total').innerText = filteredList.length;
+            document.getElementById('donut-center-count').innerText = filteredList.length;
+            
+            if (filteredList.length === 0) {
+                document.getElementById('kpi-score').innerText = '0.00';
+                document.getElementById('kpi-secure').innerText = '0.0%';
+                document.getElementById('kpi-risky').innerText = '0';
+                return;
+            }
+
+            const totalScore = filteredList.reduce((sum, item) => sum + item.security_score, 0);
+            const avgScore = totalScore / filteredList.length;
+            document.getElementById('kpi-score').innerText = avgScore.toFixed(2);
+
+            const secureCount = filteredList.filter(item => item.security_score >= 4).length;
+            const secureRate = (secureCount / filteredList.length) * 100;
+            document.getElementById('kpi-secure').innerText = secureRate.toFixed(1) + '%';
+
+            const riskyCount = filteredList.filter(item => item.security_score <= 2).length;
+            document.getElementById('kpi-risky').innerText = riskyCount;
+        }
+
+        // Draw dynamic SVG Donut Chart
+        function drawDonutChart(filteredList) {
+            const group = document.getElementById('donut-segments-group');
+            group.innerHTML = '';
+            
+            if (filteredList.length === 0) return;
+
+            // Calculate frequencies
+            const counts = {
+                "Very Secure": filteredList.filter(item => item.risk_level === 'Very Secure').length,
+                "Secure": filteredList.filter(item => item.risk_level === 'Secure').length,
+                "High Risk": filteredList.filter(item => item.risk_level === 'High Risk').length,
+                "Very High Risk": filteredList.filter(item => item.risk_level === 'Very High Risk').length
+            };
+
+            const colors = {
+                "Very Secure": "var(--c-very-secure)",
+                "Secure": "var(--c-secure)",
+                "High Risk": "var(--c-high)",
+                "Very High Risk": "var(--c-very-high)"
+            };
+
+            const total = filteredList.length;
+            let currentOffset = 0;
+            const r = 60;
+            const circumference = 2 * Math.PI * r; // 376.991
+
+            Object.keys(counts).forEach(key => {
+                const val = counts[key];
+                if (val === 0) return;
+
+                const percent = val / total;
+                const strokeLength = percent * circumference;
+                const strokeOffset = circumference - currentOffset;
+
+                const segment = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                segment.setAttribute("class", "donut-segment");
+                segment.setAttribute("cx", "80");
+                segment.setAttribute("cy", "80");
+                segment.setAttribute("r", r.toString());
+                segment.setAttribute("stroke", colors[key]);
+                segment.setAttribute("stroke-dasharray", `${strokeLength} ${circumference}`);
+                segment.setAttribute("stroke-dashoffset", strokeOffset.toString());
+                
+                group.appendChild(segment);
+                currentOffset += strokeLength;
+            });
+        }
+
+        // Modal Logic
+        function openModal(item) {
+            document.getElementById('m-name').innerHTML = `${item.name} ${item.website_url !== 'None' ? `<a href="${item.website_url}" target="_blank" style="font-size: 13px; margin-left: 12px; color: var(--accent-cyan); text-decoration: none; border: 1px solid rgba(0, 240, 255, 0.3); padding: 4px 10px; border-radius: 6px; background: rgba(0, 240, 255, 0.05); font-weight: 600; display: inline-flex; align-items: center;" onclick="event.stopPropagation()">🔗 Visit Website</a>` : ''}`;
+            document.getElementById('m-category').innerText = item.category;
+            
+            let scoreClass = 'secure';
+            if (item.security_score <= 2) scoreClass = 'red';
+            else if (item.security_score === 3) scoreClass = 'yellow';
+            
+            document.getElementById('m-score').className = `detail-value ${scoreClass}`;
+            document.getElementById('m-score').innerText = `${item.security_score} / 5`;
+            
+            document.getElementById('m-risk').innerText = item.risk_level;
+            
+            let pClass = 'detail-value red';
+            if (item.outreach_priority === 'LOW') pClass = 'detail-value green';
+            document.getElementById('m-priority').className = pClass;
+            document.getElementById('m-priority').innerText = item.outreach_priority;
+            
+            document.getElementById('m-reviews').innerText = `★ ${item.rating} (${item.reviews.toLocaleString()} Reviews)`;
+            
+            document.getElementById('m-https').innerText = item.https_redirect;
+            document.getElementById('m-https').className = item.https_redirect === 'Yes' ? 'detail-value green' : 'detail-value red';
+            
+            document.getElementById('m-ssl').innerText = item.ssl_status;
+            document.getElementById('m-ssl').className = item.ssl_status === 'Valid' ? 'detail-value green' : 'detail-value red';
+            
+            document.getElementById('m-admin').innerText = item.admin_panel_exposed;
+            document.getElementById('m-admin').className = item.admin_panel_exposed === 'Yes' ? 'detail-value red' : 'detail-value green';
+            
+            document.getElementById('m-safe').innerText = item.safe_browsing;
+            document.getElementById('m-safe').className = item.safe_browsing === 'Clean' ? 'detail-value green' : 'detail-value red';
+            
+            // Build flags list
+            const flagsContainer = document.getElementById('m-flags');
+            flagsContainer.innerHTML = '';
+            if (item.key_security_gaps === 'None (All Secure)') {
+                flagsContainer.innerHTML = `<span class="vulnerability-tag secure">✔ ISO/OWASP Posture Compliant (No Active Scans Blocked)</span>`;
+            } else {
+                const gapsArray = item.key_security_gaps.split(', ');
+                gapsArray.forEach(gap => {
+                    flagsContainer.innerHTML += `<span class="vulnerability-tag">⚠ ${gap}</span>`;
+                });
+            }
+            
+            document.getElementById('m-pitch').innerText = item.sales_pitch_hook;
+            document.getElementById('m-recs').innerText = item.recommendation;
+            
+            modalOverlay.classList.add('active');
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+        }
+
+        // Event Listeners
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderDashboard();
+        });
+
+        // Category filter clicks
+        const catButtons = document.querySelectorAll('#filter-category .btn');
+        catButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                catButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedCategory = btn.getAttribute('data-cat');
+                renderDashboard();
+            });
+        });
+
+        // Priority filter clicks
+        const priButtons = document.querySelectorAll('#filter-priority .btn');
+        priButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                priButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedPriority = btn.getAttribute('data-priority');
+                renderDashboard();
+            });
+        });
+
+        // View Switcher toggles
+        document.getElementById('view-cards-btn').addEventListener('click', () => {
+            document.getElementById('view-cards-btn').classList.add('active');
+            document.getElementById('view-table-btn').classList.remove('active');
+            viewMode = 'cards';
+            renderDashboard();
+        });
+
+        document.getElementById('view-table-btn').addEventListener('click', () => {
+            document.getElementById('view-table-btn').classList.add('active');
+            document.getElementById('view-cards-btn').classList.remove('active');
+            viewMode = 'table';
+            renderDashboard();
+        });
+
+        modalClose.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        // Escape key to close modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+
+        // Category scores bar chart calculation & drawing
+        function drawCategoryBarChart(filteredList) {
+            const container = document.getElementById('bar-chart-container');
+            container.innerHTML = '';
+            
+            if (filteredList.length === 0) return;
+
+            // Categories list
+            const categories = [
+                "Hospitality & Hotels",
+                "Healthcare & Clinics",
+                "Professional Services",
+                "Retail & Shops",
+                "Restaurants & Cafes"
+            ];
+
+            categories.forEach(cat => {
+                const catItems = filteredList.filter(item => item.category === cat);
+                let avg = 0;
+                if (catItems.length > 0) {
+                    const totalScore = catItems.reduce((sum, item) => sum + item.security_score, 0);
+                    avg = totalScore / catItems.length;
+                }
+
+                // Width percentage (score is 0-5)
+                const widthPct = (avg / 5) * 100;
+
+                const row = document.createElement('div');
+                row.className = 'bar-row';
+                
+                // Short label
+                let shortLabel = cat;
+                if (cat === "Professional Services") shortLabel = "Prof. Services";
+                else if (cat === "Healthcare & Clinics") shortLabel = "Healthcare";
+                else if (cat === "Restaurants & Cafes") shortLabel = "Restaurants";
+                else if (cat === "Hospitality & Hotels") shortLabel = "Hospitality";
+                else if (cat === "Retail & Shops") shortLabel = "Retail";
+
+                row.innerHTML = `
+                    <div class="bar-label" title="${cat}">${shortLabel}</div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: ${widthPct}%"></div>
+                    </div>
+                    <div class="bar-val">${avg.toFixed(1)}</div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // CSV Export Trigger
+        document.getElementById('export-csv-btn').addEventListener('click', () => {
+            const headers = ["Business ID", "Business Name", "Category", "Location", "Security Score", "Risk Level", "GBP Claimed", "Website Status", "Website URL", "Outreach Priority", "Estimated Lead Value", "Sales Pitch Hook", "Primary Security Gaps", "Actionable Recommendation"];
+            
+            // Get filtered list matching active controls
+            const filtered = data.filter(item => {
+                const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+                const matchesPriority = selectedPriority === 'all' || item.outreach_priority === selectedPriority;
+                
+                const searchLower = searchQuery.toLowerCase();
+                const matchesSearch = searchQuery === '' || 
+                    item.name.toLowerCase().includes(searchLower) ||
+                    item.location.toLowerCase().includes(searchLower) ||
+                    item.key_security_gaps.toLowerCase().includes(searchLower) ||
+                    item.outreach_priority.toLowerCase().includes(searchLower) ||
+                    item.risk_level.toLowerCase().includes(searchLower);
+                
+                return matchesCategory && matchesPriority && matchesSearch;
+            });
+
+            let csvContent = "data:text/csv;charset=utf-8,\ufeff";
+            csvContent += headers.join(",") + "\n";
+
+            filtered.forEach(item => {
+                const row = [
+                    item.id,
+                    `"${item.name.replace(/"/g, '""')}"`,
+                    item.category,
+                    item.location,
+                    item.security_score,
+                    item.risk_level,
+                    item.gbp_claimed,
+                    item.website_status,
+                    item.website_url,
+                    item.outreach_priority,
+                    `"${item.estimated_lead_value.replace(/"/g, '""')}"`,
+                    `"${item.sales_pitch_hook.replace(/"/g, '""')}"`,
+                    `"${item.key_security_gaps.replace(/"/g, '""')}"`,
+                    `"${item.recommendation.replace(/"/g, '""')}"`
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Filtered_Security_Audit_Leads_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // Tab Navigation Event Listeners
+        const tabLeadsBtn = document.getElementById('tab-leads-btn');
+        const tabReportBtn = document.getElementById('tab-report-btn');
+        const leadsSection = document.getElementById('leads-section-container');
+        const reportSection = document.getElementById('report-section-container');
+        const dashboardTopGrid = document.getElementById('dashboard-top-grid');
+
+        tabLeadsBtn.addEventListener('click', () => {
+            tabLeadsBtn.classList.add('active');
+            tabReportBtn.classList.remove('active');
+            leadsSection.style.display = 'block';
+            reportSection.style.display = 'none';
+            dashboardTopGrid.style.display = 'grid';
+        });
+
+        tabReportBtn.addEventListener('click', () => {
+            tabReportBtn.classList.add('active');
+            tabLeadsBtn.classList.remove('active');
+            leadsSection.style.display = 'none';
+            reportSection.style.display = 'block';
+            dashboardTopGrid.style.display = 'none'; // Hide dynamic mini charts on report tab for clean reading layout
+        });
+
+        // Extend renderDashboard to update category bar chart
+        const originalRender = renderDashboard;
+        renderDashboard = function() {
+            originalRender();
+            
+            // Get filtered list for bar chart
+            const filteredForBar = data.filter(item => {
+                const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+                const matchesPriority = selectedPriority === 'all' || item.outreach_priority === selectedPriority;
+                
+                const searchLower = searchQuery.toLowerCase();
+                const matchesSearch = searchQuery === '' || 
+                    item.name.toLowerCase().includes(searchLower) ||
+                    item.location.toLowerCase().includes(searchLower) ||
+                    item.key_security_gaps.toLowerCase().includes(searchLower) ||
+                    item.outreach_priority.toLowerCase().includes(searchLower) ||
+                    item.risk_level.toLowerCase().includes(searchLower);
+                
+                return matchesCategory && matchesPriority && matchesSearch;
+            });
+            drawCategoryBarChart(filteredForBar);
+        };
+
+        // City Filtering Logic
+        let selectedCity = 'all';
+
+        function renderCityPills() {
+            const row = document.getElementById('city-pills-row');
+            
+            // Get unique cities
+            const citiesSet = new Set(data.map(item => item.location));
+            const citiesList = ['all', ...Array.from(citiesSet).sort()];
+            
+            row.innerHTML = '';
+            citiesList.forEach(city => {
+                const count = city === 'all' ? data.length : data.filter(item => item.location === city).length;
+                const pill = document.createElement('div');
+                pill.className = `city-pill ${selectedCity === city ? 'active' : ''}`;
+                pill.innerHTML = city === 'all' ? `🌐 All Cities (${count})` : `📍 ${city} (${count})`;
+                
+                pill.addEventListener('click', () => {
+                    selectedCity = city;
+                    renderCityPills();
+                    renderDashboard();
+                });
+                row.appendChild(pill);
+            });
+        }
+
+        // Score Calculator Logic
+        const openCalcBtn = document.getElementById('open-calc-btn');
+        const closeCalcBtn = document.getElementById('close-calc-btn');
+        const calcDrawer = document.getElementById('calc-drawer');
+        const drawerOverlay = document.getElementById('drawer-overlay');
+
+        openCalcBtn.addEventListener('click', () => {
+            drawerOverlay.style.display = 'block';
+            setTimeout(() => {
+                drawerOverlay.style.opacity = '1';
+                calcDrawer.classList.add('open');
+            }, 10);
+        });
+
+        function closeDrawer() {
+            calcDrawer.classList.remove('open');
+            drawerOverlay.style.opacity = '0';
+            setTimeout(() => {
+                drawerOverlay.style.display = 'none';
+            }, 300);
+        }
+
+        closeCalcBtn.addEventListener('click', closeDrawer);
+        drawerOverlay.addEventListener('click', closeDrawer);
+
+        // Score Meter Calculation
+        const calcHttp = document.getElementById('calc-v-http');
+        const calcSsl = document.getElementById('calc-v-ssl');
+        const calcAdmin = document.getElementById('calc-v-admin');
+        const calcForms = document.getElementById('calc-v-forms');
+        const calcSafe = document.getElementById('calc-v-safe');
+
+        function recomputeSimulatedScore() {
+            let score = 5.0;
+            if (calcHttp.checked) score -= 1.0;
+            if (calcSsl.checked) score -= 1.0;
+            if (calcAdmin.checked) score -= 1.0;
+            if (calcForms.checked) score -= 1.0;
+            if (calcSafe.checked) score -= 1.0;
+            
+            if (score < 1.0) score = 1.0;
+
+            document.getElementById('calc-score-val').textContent = score.toFixed(1);
+
+            const riskVal = document.getElementById('calc-risk-val');
+            const priorityVal = document.getElementById('calc-priority-val');
+
+            if (score >= 5.0) {
+                riskVal.textContent = "Very Secure";
+                riskVal.style.color = "var(--color-secure)";
+                priorityVal.textContent = "LOW";
+                priorityVal.style.color = "var(--color-secure)";
+            } else if (score >= 4.0) {
+                riskVal.textContent = "Secure";
+                riskVal.style.color = "var(--color-secure)";
+                priorityVal.textContent = "LOW";
+                priorityVal.style.color = "var(--color-secure)";
+            } else if (score >= 3.0) {
+                riskVal.textContent = "Moderate Risk";
+                riskVal.style.color = "var(--accent-cyan)";
+                priorityVal.textContent = "MEDIUM";
+                priorityVal.style.color = "var(--accent-cyan)";
+            } else if (score >= 2.0) {
+                riskVal.textContent = "High Risk";
+                riskVal.style.color = "var(--color-danger)";
+                priorityVal.textContent = "CRITICAL";
+                priorityVal.style.color = "var(--color-danger)";
+            } else {
+                riskVal.textContent = "Very High Risk";
+                riskVal.style.color = "var(--color-danger)";
+                priorityVal.textContent = "CRITICAL";
+                priorityVal.style.color = "var(--color-danger)";
+            }
+        }
+
+        [calcHttp, calcSsl, calcAdmin, calcForms, calcSafe].forEach(el => {
+            el.addEventListener('change', recomputeSimulatedScore);
+        });
+
+        // Initialize score once
+        recomputeSimulatedScore();
+
+        // Copy Email Pitch Clipboard Trigger
+        let currentEmailPitchText = '';
+        document.getElementById('copy-email-btn').addEventListener('click', () => {
+            if (!currentEmailPitchText) return;
+            navigator.clipboard.writeText(currentEmailPitchText).then(() => {
+                const btn = document.getElementById('copy-email-btn');
+                const oldText = btn.textContent;
+                btn.textContent = 'Copied! ✓';
+                btn.style.color = 'var(--color-secure)';
+                btn.style.borderColor = 'var(--color-secure)';
+                setTimeout(() => {
+                    btn.textContent = oldText;
+                    btn.style.color = 'var(--accent-cyan)';
+                    btn.style.borderColor = 'var(--accent-cyan)';
+                }, 2000);
+            });
+        });
+
+        // Override lead click detailed modal to populate pitch email
+        const originalShowDetail = showDetail;
+        showDetail = function(id) {
+            originalShowDetail(id);
+            
+            const lead = data.find(item => item.id === id);
+            if (lead) {
+                // Populate Email Pitch Text
+                const emailText = `Subject: ${lead.outreach_subject_line}
+
+Dear Management Team at ${lead.name},
+
+My name is Audit Specialist, and I recently completed a digital vulnerability review of businesses located in ${lead.location}.
+
+While evaluating your online portal (${lead.website_url}), we identified several core security risks:
+* Gaps Detected: ${lead.key_security_gaps}
+
+Specifically: ${lead.first_touch_pitch}
+
+We help companies in the ${lead.category} sector harden these configurations to block competitor hijacking and protect customer forms. We can remediate these items for your team today.
+
+Are you available for a brief 10-minute call this Thursday to verify your settings?
+
+Best regards,
+Lead Security Auditor
+National SMB Digital Risk Auditor`;
+
+                currentEmailPitchText = emailText;
+                document.getElementById('modal-email-pitch').textContent = emailText;
+            }
+        };
+
+        // Override renderDashboard to filter by selectedCity as well!
+        renderDashboard = function() {
+            // Update KPIs
+            const filteredForKPIs = data.filter(item => {
+                const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+                const matchesPriority = selectedPriority === 'all' || item.outreach_priority === selectedPriority;
+                const matchesCity = selectedCity === 'all' || item.location === selectedCity;
+                const searchLower = searchQuery.toLowerCase();
+                const matchesSearch = searchQuery === '' || 
+                    item.name.toLowerCase().includes(searchLower) ||
+                    item.location.toLowerCase().includes(searchLower) ||
+                    item.key_security_gaps.toLowerCase().includes(searchLower) ||
+                    item.outreach_priority.toLowerCase().includes(searchLower) ||
+                    item.risk_level.toLowerCase().includes(searchLower);
+                
+                return matchesCategory && matchesPriority && matchesCity && matchesSearch;
+            });
+
+            // Update KPI values
+            document.getElementById('kpi-total').textContent = filteredForKPIs.length;
+            
+            let avgScore = 0;
+            if (filteredForKPIs.length > 0) {
+                const totalScore = filteredForKPIs.reduce((sum, item) => sum + item.security_score, 0);
+                avgScore = totalScore / filteredForKPIs.length;
+            }
+            document.getElementById('kpi-score').textContent = avgScore.toFixed(2);
+
+            const secureCount = filteredForKPIs.filter(item => item.security_score >= 4).length;
+            const secureRate = filteredForKPIs.length > 0 ? (secureCount / filteredForKPIs.length) * 100 : 0;
+            document.getElementById('kpi-secure').textContent = secureRate.toFixed(1) + '%';
+
+            const riskyCount = filteredForKPIs.filter(item => item.security_score <= 2).length;
+            document.getElementById('kpi-risky').textContent = riskyCount;
+            
+            // Center Donut Number
+            document.getElementById('donut-center-count').textContent = filteredForKPIs.length;
+
+            // Render Ring Slices
+            const vSecureCount = filteredForKPIs.filter(item => item.risk_level === 'Very Secure').length;
+            const secureLvlCount = filteredForKPIs.filter(item => item.risk_level === 'Secure').length;
+            const highCount = filteredForKPIs.filter(item => item.security_score === 2).length;
+            const vHighCount = filteredForKPIs.filter(item => item.security_score <= 1).length;
+
+            const totalSegments = vSecureCount + secureLvlCount + highCount + vHighCount;
+            const group = document.getElementById('donut-segments-group');
+            group.innerHTML = '';
+
+            if (totalSegments > 0) {
+                const segments = [
+                    { count: vSecureCount, color: 'var(--c-very-secure)' },
+                    { count: secureLvlCount, color: 'var(--c-secure)' },
+                    { count: highCount, color: 'var(--c-high)' },
+                    { count: vHighCount, color: 'var(--c-very-high)' }
+                ].filter(s => s.count > 0);
+
+                let accumulatedPct = 0;
+                const r = 60;
+                const circumference = 2 * Math.PI * r;
+
+                segments.forEach(seg => {
+                    const pct = seg.count / totalSegments;
+                    const strokeDasharray = `${pct * circumference} ${circumference}`;
+                    const strokeDashoffset = -accumulatedPct * circumference;
+                    
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('class', 'donut-segment');
+                    circle.setAttribute('cx', '80');
+                    circle.setAttribute('cy', '80');
+                    circle.setAttribute('r', r.toString());
+                    circle.setAttribute('stroke', seg.color);
+                    circle.setAttribute('stroke-dasharray', strokeDasharray);
+                    circle.setAttribute('stroke-dashoffset', strokeDashoffset.toString());
+                    
+                    group.appendChild(circle);
+                    accumulatedPct += pct;
+                });
+            }
+
+            
+            const sortVal = document.getElementById('sort-filter') ? document.getElementById('sort-filter').value : 'score-asc';
+            if (sortVal === 'score-asc') {
+                filteredForKPIs.sort((a, b) => a.security_score - b.security_score || b.reviews - a.reviews);
+            } else if (sortVal === 'score-desc') {
+                filteredForKPIs.sort((a, b) => b.security_score - a.security_score || b.reviews - a.reviews);
+            } else if (sortVal === 'name-asc') {
+                filteredForKPIs.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (sortVal === 'reviews-desc') {
+                filteredForKPIs.sort((a, b) => b.reviews - a.reviews);
+            }
+
+            // Draw Category Bars
+            drawCategoryBarChart(filteredForKPIs);
+
+            // Render cards or table based on selected view
+            if (activeView === 'cards') {
+                leadsGrid.style.display = 'grid';
+                document.getElementById('table-container').style.display = 'none';
+                
+                leadsGrid.innerHTML = '';
+                if (filteredForKPIs.length === 0) {
+                    leadsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No leads found matching active criteria.</div>';
+                    return;
+                }
+
+                filteredForKPIs.forEach(lead => {
+                    const card = document.createElement('div');
+                    card.className = `lead-card priority-${lead.outreach_priority.toLowerCase()}`;
+                    card.setAttribute('onclick', `showDetail('${lead.id}')`);
+                    
+                    const isSecure = lead.security_score >= 4;
+                    const ratingStars = '★'.repeat(Math.round(lead.rating)) + '☆'.repeat(5 - Math.round(lead.rating));
+
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <span class="lead-id">${lead.id}</span>
+                            <span class="priority-badge priority-${lead.outreach_priority.toLowerCase()}">${lead.outreach_priority}</span>
+                        </div>
+                        <h3 class="lead-name">${lead.name}</h3>
+                        <div class="lead-meta-row">
+                            <span>📍 ${lead.location}</span>
+                            <span>🏷 ${lead.category}</span>
+                        </div>
+                        <div class="rating-row" style="font-size: 11px; margin-bottom: 12px; color: var(--accent-cyan); display: flex; gap: 6px;">
+                            <span>${ratingStars}</span>
+                            <span style="color: var(--text-muted)">(${lead.reviews} reviews)</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-muted);">
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Security Score</span>
+                                <span style="font-size: 16px; font-weight: 800; color: ${isSecure ? 'var(--color-secure)' : 'var(--color-danger)'}">${lead.security_score}/5</span>
+                            </div>
+                            <span class="risk-level-badge ${lead.risk_level.toLowerCase().replace(/ /g, '-')}">${lead.risk_level}</span>
+                        </div>
+                    `;
+                    leadsGrid.appendChild(card);
+                });
+            } else {
+                leadsGrid.style.display = 'none';
+                const tableContainer = document.getElementById('table-container');
+                tableContainer.style.display = 'block';
+                
+                const tbody = document.getElementById('leads-tbody');
+                tbody.innerHTML = '';
+
+                if (filteredForKPIs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">No leads found matching active criteria.</td></tr>';
+                    return;
+                }
+
+                filteredForKPIs.forEach(lead => {
+                    const tr = document.createElement('tr');
+                    tr.setAttribute('onclick', `showDetail('${lead.id}')`);
+                    
+                    const isSecure = lead.security_score >= 4;
+
+                    tr.innerHTML = `
+                        <td><strong>${lead.id}</strong></td>
+                        <td>
+                            <div style="font-weight: 600; color: #ffffff;">${lead.name}</div>
+                            <div style="font-size: 10.5px; color: var(--text-muted);">${lead.category}</div>
+                        </td>
+                        <td>📍 ${lead.location}</td>
+                        <td style="text-align: center;">
+                            <span style="font-weight: 800; color: ${isSecure ? 'var(--color-secure)' : 'var(--color-danger)'}">${lead.security_score}/5</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="risk-level-badge ${lead.risk_level.toLowerCase().replace(/ /g, '-')}">${lead.risk_level}</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="priority-badge priority-${lead.outreach_priority.toLowerCase()}">${lead.outreach_priority}</span>
+                        </td>
+                        <td>
+                            <div style="font-size: 11.5px; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${lead.key_security_gaps}">
+                                ${lead.key_security_gaps}
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        };
+
+        
+        const sortFilter = document.getElementById('sort-filter');
+        if(sortFilter) {
+            sortFilter.addEventListener('change', renderDashboard);
+        }
+
+        
+        // Theme Toggle Logic
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', () => {
+                document.body.classList.toggle('light-mode');
+                if (document.body.classList.contains('light-mode')) {
+                    themeBtn.textContent = '🌙 Dark Mode';
+                    themeBtn.style.color = 'var(--text-light)';
+                    themeBtn.style.borderColor = 'var(--text-muted)';
+                } else {
+                    themeBtn.textContent = '☀️ Light Mode';
+                    themeBtn.style.color = 'var(--color-warning)';
+                    themeBtn.style.borderColor = 'var(--color-warning)';
+                }
+            });
+        }
+
+        // Initial Load
+        renderCityPills();
+        renderDashboard();
+    </script>
+</body>
+</html>
+"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_template)
+print("Dashboard index.html generated successfully!")
