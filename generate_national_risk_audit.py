@@ -4786,6 +4786,6 @@ National SMB Digital Risk Auditor`;
 </html>
 """
 
-with open("index.html", "w", encoding="utf-8") as f:
+with open("National_Digital_Risk_Audit_Dashboard.html", "w", encoding="utf-8") as f:
     f.write(html_template)
-print("Dashboard index.html generated successfully!")
+print("Dashboard National_Digital_Risk_Audit_Dashboard.html generated successfully!")
